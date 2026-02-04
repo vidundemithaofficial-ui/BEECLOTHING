@@ -152,6 +152,8 @@
             return scrollPosition;
         };
 
+        const WHATSAPP_NUMBER = "94777123456"; // REPLACE WITH YOUR ACTUAL NUMBER
+
         const formatCurrency = (amount) => {
             return `LKR ${amount.toLocaleString()}`;
         };
@@ -344,8 +346,8 @@
                             <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-gray-900 leading-tight">URBAN<br />LEGEND</h2>
                             <p className="mt-2 text-lg md:text-2xl font-light text-gray-500 tracking-tight">FLY AWAY WITH YOUR STYLE</p>
                         </div>
-						{/* Right Specs */}
-                        <div 
+                        {/* Right Specs */}
+                        <div
                             className={`absolute right-6 md:right-24 top-[13%] z-20 text-right transition-all duration-1000 delay-500 ${loaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}
                             style={{ opacity: contentOpacity, transform: `translateY(-${scrollY * 0.3}px)` }}
                         >
@@ -361,7 +363,7 @@
                                     Unisex<br />Oversized Fit
                                 </p>
                             </div>
-                            
+
                         </div>
 
 
@@ -780,50 +782,122 @@
             );
         };
 
-        const CheckoutPage = ({ cartItems, total, onBack }) => (
-            <div className="pt-24 md:pt-32 pb-16 md:pb-24 min-h-screen bg-gray-50 animate-fade-in">
-                <div className="container mx-auto px-6 max-w-4xl">
-                    <button onClick={onBack} className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 hover:text-black mb-8">
-                        <Icon className="rotate-180"><ArrowRight size={16} /></Icon> BACK TO CART
-                    </button>
+        const CheckoutPage = ({ cartItems, total, onBack }) => {
+            const [formData, setFormData] = useState({
+                fullName: '',
+                address: '',
+                city: '',
+                phone: ''
+            });
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        {/* Summary */}
-                        <div className="bg-white p-8 rounded-sm shadow-sm h-fit">
-                            <h2 className="font-digital text-xl font-bold mb-6">ORDER SUMMARY</h2>
-                            <div className="space-y-4 mb-6">
-                                {cartItems.map(item => (
-                                    <div key={item.id} className="flex justify-between text-sm">
-                                        <span>{item.name} (x{item.qty})</span>
-                                        <span>{formatCurrency(item.price * item.qty)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="border-t border-gray-100 pt-4 flex justify-between font-bold">
-                                <span>TOTAL</span>
-                                <span>{formatCurrency(total)}</span>
-                            </div>
-                        </div>
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
 
-                        {/* Form */}
-                        <div className="bg-white p-8 rounded-sm shadow-sm">
-                            <h2 className="font-digital text-xl font-bold mb-6">SHIPPING DETAILS</h2>
-                            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Order Placed! (Demo)'); }}>
-                                <input type="text" placeholder="Full Name" className="w-full border p-3 text-sm outline-none focus:border-bee-gold" required />
-                                <input type="text" placeholder="Address" className="w-full border p-3 text-sm outline-none focus:border-bee-gold" required />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <input type="text" placeholder="City" className="w-full border p-3 text-sm outline-none focus:border-bee-gold" required />
-                                    <input type="text" placeholder="Phone" className="w-full border p-3 text-sm outline-none focus:border-bee-gold" required />
+            const handleSubmit = (e) => {
+                e.preventDefault();
+
+                // Construct order message
+                let message = `*NEW ORDER DETAILS*\n\n`;
+                message += `*Customer Info:*\n`;
+                message += `Name: ${formData.fullName}\n`;
+                message += `Address: ${formData.address}\n`;
+                message += `City: ${formData.city}\n`;
+                message += `Phone: ${formData.phone}\n\n`;
+
+                message += `*Order Summary:*\n`;
+                cartItems.forEach(item => {
+                    message += `- ${item.name} (${item.size}) x${item.qty}: ${formatCurrency(item.price * item.qty)}\n`;
+                });
+
+                message += `\n*TOTAL: ${formatCurrency(total)}*`;
+
+                // Encode for URL
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+
+                // Redirect
+                window.open(whatsappUrl, '_blank');
+            };
+
+            return (
+                <div className="pt-24 md:pt-32 pb-16 md:pb-24 min-h-screen bg-gray-50 animate-fade-in">
+                    <div className="container mx-auto px-6 max-w-4xl">
+                        <button onClick={onBack} className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 hover:text-black mb-8">
+                            <Icon className="rotate-180"><ArrowRight size={16} /></Icon> BACK TO CART
+                        </button>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            {/* Summary */}
+                            <div className="bg-white p-8 rounded-sm shadow-sm h-fit">
+                                <h2 className="font-digital text-xl font-bold mb-6">ORDER SUMMARY</h2>
+                                <div className="space-y-4 mb-6">
+                                    {cartItems.map(item => (
+                                        <div key={item.id} className="flex justify-between text-sm">
+                                            <span>{item.name} ({item.size}) (x{item.qty})</span>
+                                            <span>{formatCurrency(item.price * item.qty)}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                                <button className="w-full bg-black text-white py-4 mt-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-bee-gold transition-colors">
-                                    CONFIRM ORDER
-                                </button>
-                            </form>
+                                <div className="border-t border-gray-100 pt-4 flex justify-between font-bold">
+                                    <span>TOTAL</span>
+                                    <span>{formatCurrency(total)}</span>
+                                </div>
+                            </div>
+
+                            {/* Form */}
+                            <div className="bg-white p-8 rounded-sm shadow-sm">
+                                <h2 className="font-digital text-xl font-bold mb-6">SHIPPING DETAILS</h2>
+                                <form className="space-y-4" onSubmit={handleSubmit}>
+                                    <input
+                                        type="text"
+                                        name="fullName"
+                                        placeholder="Full Name"
+                                        className="w-full border p-3 text-sm outline-none focus:border-bee-gold"
+                                        required
+                                        value={formData.fullName}
+                                        onChange={handleInputChange}
+                                    />
+                                    <input
+                                        type="text"
+                                        name="address"
+                                        placeholder="Address"
+                                        className="w-full border p-3 text-sm outline-none focus:border-bee-gold"
+                                        required
+                                        value={formData.address}
+                                        onChange={handleInputChange}
+                                    />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            placeholder="City"
+                                            className="w-full border p-3 text-sm outline-none focus:border-bee-gold"
+                                            required
+                                            value={formData.city}
+                                            onChange={handleInputChange}
+                                        />
+                                        <input
+                                            type="text"
+                                            name="phone"
+                                            placeholder="Phone"
+                                            className="w-full border p-3 text-sm outline-none focus:border-bee-gold"
+                                            required
+                                            value={formData.phone}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+                                    <button className="w-full bg-black text-white py-4 mt-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-bee-gold transition-colors">
+                                        CONFIRM ORDER
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        };
 
         // --- MAIN APP ---
         const App = () => {
